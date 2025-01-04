@@ -1,13 +1,32 @@
 import SwiftUI
 
-/// A canvas view that handles drawing and selection functionality
+/// A canvas view that provides drawing and selection functionality
+///
+/// DrawingCanvasView is responsible for:
+/// - Handling drawing input from the user
+/// - Rendering the current drawing state
+/// - Managing the lasso selection tool
+/// - Providing visual feedback for the current tool
+///
+/// The view uses SwiftUI's Canvas API for high-performance drawing and
+/// supports pressure sensitivity when available.
 struct DrawingCanvasView: View {
+    /// View model that manages the drawing state
     @ObservedObject var viewModel: DrawingViewModel
+    
+    /// Tracks whether the user is currently drawing or selecting
     @State private var isDragging = false
     
     var body: some View {
         GeometryReader { geometry in
             Canvas { context, size in
+                // Set up canvas for accessibility
+                context.withCGContext { cgContext in
+                    cgContext.setAllowsAntialiasing(true)
+                    cgContext.setLineCap(.round)
+                    cgContext.setLineJoin(.round)
+                }
+                
                 // Draw existing lines
                 for line in viewModel.lines {
                     var path = Path()
@@ -76,22 +95,30 @@ struct DrawingCanvasView: View {
                         viewModel.endDrawing()
                     }
             )
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Drawing Canvas")
+            .accessibilityAddTraits(.allowsDirectInteraction)
+            .accessibilityHint("Draw with selected tool by dragging on the canvas")
             .onHover { hovering in
                 if hovering {
-                    switch viewModel.selectedTool {
-                    case .pencil:
-                        NSCursor.crosshair.push()
-                    case .eraser:
-                        NSCursor.crosshair.push()
-                    case .lasso:
-                        NSCursor.crosshair.push()
-                    }
+                    let cursor: NSCursor = {
+                        switch viewModel.selectedTool {
+                        case .pencil:
+                            return NSCursor.crosshair
+                        case .eraser:
+                            return NSCursor.crosshair
+                        case .lasso:
+                            return NSCursor.crosshair
+                        }
+                    }()
+                    cursor.push()
                 } else {
                     NSCursor.pop()
                 }
             }
         }
         .background(Color.white)
+        .accessibilityIdentifier("view.drawingCanvas")
         .overlay(
             Group {
                 if viewModel.isProcessing {

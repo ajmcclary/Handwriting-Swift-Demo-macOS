@@ -2,12 +2,12 @@
 import PackageDescription
 
 let package = Package(
-    name: "HandwritingApp",
+    name: "TrOCR-Swift-Demo",
     platforms: [
         .macOS(.v13)
     ],
     products: [
-        .executable(name: "HandwritingApp", targets: ["HandwritingApp"])
+        .executable(name: "TrOCR-Swift-Demo", targets: ["HandwritingApp"])
     ],
     dependencies: [],
     targets: [

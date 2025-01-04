@@ -1,10 +1,18 @@
 import SwiftUI
-import CoreML
-import Vision
 import AppKit
-import CoreImage
+import SwiftUI
 
-/// Manages the drawing state and ML processing for the application
+/// Manages the drawing state and coordinates with services for text recognition
+/// 
+/// The DrawingViewModel serves as the central coordinator for the application's drawing functionality.
+/// It manages the current drawing state, handles user interactions, and coordinates with the
+/// TextRecognitionService for processing handwritten text.
+///
+/// Key responsibilities:
+/// - Managing drawing tools and current selection
+/// - Coordinating drawing operations
+/// - Handling text recognition through TextRecognitionService
+/// - Managing error states and user feedback
 @MainActor
 class DrawingViewModel: ObservableObject {
     /// Current drawing tool selected by the user
@@ -47,39 +55,15 @@ class DrawingViewModel: ObservableObject {
     /// Loading state for ML processing
     @Published var isProcessing = false
     
-    private var mlModel: MLModel?
-    private let ciContext = CIContext()
+    /// Service responsible for text recognition
+    private let textRecognitionService: TextRecognitionService
     
     init() {
         do {
-            // Try to find the compiled model
-            let possiblePaths = [
-                Bundle.main.resourcePath,
-                Bundle.main.bundlePath,
-                FileManager.default.currentDirectoryPath + "/.build/arm64-apple-macosx/debug",
-                FileManager.default.currentDirectoryPath + "/HandwritingApp/Resources"
-            ]
-            
-            var modelFound = false
-            for path in possiblePaths {
-                if let path = path {
-                    let modelPath = path + "/TrOCR-Handwritten.mlmodelc"
-                    print("Checking path: \(modelPath)")
-                    if FileManager.default.fileExists(atPath: modelPath) {
-                        mlModel = try MLModel(contentsOf: URL(fileURLWithPath: modelPath))
-                        print("Found and loaded model at: \(modelPath)")
-                        modelFound = true
-                        break
-                    }
-                }
-            }
-            
-            if !modelFound {
-                errorMessage = "Failed to locate ML model"
-            }
+            textRecognitionService = try TextRecognitionService()
         } catch {
-            errorMessage = "Failed to load ML model: \(error.localizedDescription)"
-            print("Error loading model: \(error)")
+            textRecognitionService = try! TextRecognitionService() // Force-try as fallback for preview
+            errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }
     }
     
@@ -135,99 +119,28 @@ class DrawingViewModel: ObservableObject {
     }
     
     /// Process the selected area for text recognition
+    /// - Returns: The recognized text if successful
     func processSelectedArea() async {
-        guard let selectedArea = selectedArea else {
-            print("No selected area")
-            return
-        }
+        guard let selectedArea = selectedArea else { return }
         
-        print("\nProcessing selected area: \(selectedArea)")
         isProcessing = true
         defer { isProcessing = false }
         
         do {
-            // Create a bitmap representation of the entire view
             let view = DrawingCanvasView(viewModel: self)
                 .frame(width: 800, height: 600)
+                .background(Color.white)
             
-            let renderer = ImageRenderer(content: view)
-            renderer.scale = 2.0
-            
-            print("Creating image from view...")
-            guard let nsImage = renderer.nsImage else {
-                errorMessage = "Failed to create image from selection"
-                return
+            do {
+                recognizedText = try await textRecognitionService.recognizeText(
+                    from: view,
+                    in: selectedArea
+                )
+            } catch {
+                throw error
             }
-            
-            print("Image size: \(nsImage.size)")
-            
-            // Create a new image for the cropped area
-            let croppedImage = NSImage(size: selectedArea.size)
-            croppedImage.lockFocus()
-            
-            // Draw the portion of the original image into the new image
-            let sourceRect = NSRect(
-                x: selectedArea.origin.x,
-                y: nsImage.size.height - selectedArea.origin.y - selectedArea.height,
-                width: selectedArea.width,
-                height: selectedArea.height
-            )
-            
-            let destRect = NSRect(origin: .zero, size: selectedArea.size)
-            nsImage.draw(in: destRect, from: sourceRect, operation: .copy, fraction: 1.0)
-            
-            croppedImage.unlockFocus()
-            
-            // Convert NSImage to CGImage
-            guard let cgImage = croppedImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-                errorMessage = "Failed to create CGImage"
-                return
-            }
-            
-            print("Creating Vision request...")
-            let request = VNRecognizeTextRequest { [weak self] request, error in
-                if let error = error {
-                    self?.errorMessage = "Recognition failed: \(error.localizedDescription)"
-                    print("Recognition error details: \(error)")
-                    return
-                }
-                
-                guard let observations = request.results as? [VNRecognizedTextObservation] else {
-                    print("No text observations found")
-                    return
-                }
-                
-                print("Found \(observations.count) text observations")
-                observations.forEach { observation in
-                    print("Observation confidence: \(observation.confidence)")
-                    if let candidate = observation.topCandidates(1).first {
-                        print("Candidate text: \(candidate.string), confidence: \(candidate.confidence)")
-                    }
-                }
-                
-                let recognizedStrings = observations.compactMap { observation in
-                    observation.topCandidates(1).first?.string
-                }
-                
-                if recognizedStrings.isEmpty {
-                    print("No text candidates found in observations")
-                }
-                
-                self?.recognizedText = recognizedStrings.joined(separator: " ")
-            }
-            
-            // Configure the request for handwriting
-            request.recognitionLevel = .accurate
-            request.usesLanguageCorrection = true
-            request.recognitionLanguages = ["en-US"]
-            
-            print("Performing Vision request...")
-            let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
-            try handler.perform([request])
-            
         } catch {
-            errorMessage = "Failed to process image: \(error.localizedDescription)"
-            print("Error details: \(error)")
+            errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }
     }
     

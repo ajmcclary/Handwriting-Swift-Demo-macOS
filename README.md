@@ -2,106 +2,128 @@
 
 A proof of concept demonstrating real-time handwriting recognition using Microsoft's TrOCR model in a native macOS SwiftUI application. This demo showcases the integration of CoreML-converted TrOCR with Apple's Vision framework, enabling instant conversion of handwritten text to digital format through an intuitive drawing interface.
 
-![Example of handwriting recognition](docs/example.png)
+![HandwritingApp Screenshot](docs/example.png)
 
 ## Features
 
-- Drawing canvas with pressure sensitivity
-- Multiple tools:
-  - Pencil tool for writing
-  - Eraser tool for corrections
-  - Lasso tool for selecting text
-- Real-time handwriting recognition
-- Text recognition results displayed in both UI and terminal
+- **Drawing Tools**
+  - Pressure-sensitive pencil tool for natural handwriting
+  - Eraser tool for making corrections
+  - Lasso tool for selecting text areas
 
-## Prerequisites
+- **Text Recognition**
+  - ML-powered handwriting recognition
+  - Support for English text
+  - Real-time processing
+  - Clear error handling with recovery suggestions
+
+- **User Interface**
+  - Clean, intuitive toolbar
+  - Live drawing preview
+  - Visual feedback for selection
+  - Accessibility support
+  - Error messaging system
+
+## Requirements
 
 - macOS 13.0 or later
-- Xcode 14.0 or later
+- Xcode 15.0 or later
 - Swift 5.9 or later
-- Python 3.8 or later (for ML model generation)
 
-## Setup
+## Installation
 
-1. Clone this repository:
+1. Clone the repository:
 ```bash
 git clone https://github.com/yourusername/TrOCR-Swift-Demo.git
 cd TrOCR-Swift-Demo
 ```
 
-2. Generate the TrOCR ML model:
-
-First, clone the TrOCR model repository:
+2. Build and run the project:
 ```bash
-git clone https://github.com/ajmcclary/trocr-small-handwritten-coreml.git
-cd trocr-small-handwritten-coreml
-```
-
-Install the required Python dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-Run the conversion script to generate the CoreML model:
-```bash
-python convert_to_coreml.py
-```
-
-This will generate `TrOCR-Handwritten.mlpackage`. Copy this file to the app's Resources directory:
-```bash
-cp TrOCR-Handwritten.mlpackage /path/to/TrOCR-Swift-Demo/HandwritingApp/Resources/
-```
-
-3. Build and run the app:
-```bash
-swift build
-swift run
+swift run TrOCR-Swift-Demo
 ```
 
 ## Usage
 
-1. **Drawing**:
-   - Select the pencil tool (default)
-   - Draw text on the canvas
-   - Use the eraser tool if needed for corrections
+1. **Drawing**
+   - Select the pencil tool from the toolbar
+   - Draw on the canvas using your mouse or trackpad
+   - Pressure sensitivity is supported with compatible hardware
 
-2. **Text Recognition**:
+2. **Erasing**
+   - Select the eraser tool
+   - Click and drag over areas you want to erase
+
+3. **Text Recognition**
    - Select the lasso tool
    - Draw around the text you want to recognize
-   - Click the text recognition button (viewfinder icon)
-   - View the recognized text in both the UI and terminal
+   - Click the "Recognize Text" button (viewfinder icon)
+   - View the recognized text in the results panel
 
-3. **Additional Controls**:
-   - Clear selection: X button when selection is active
-   - Clear canvas: Trash button
-   - Tool selection: Click on tool icons in the toolbar
+4. **Managing Content**
+   - Use the clear selection button (X icon) to remove the current selection
+   - Use the clear canvas button (trash icon) to start over
 
 ## Architecture
 
-The app follows the MVVM (Model-View-ViewModel) architecture:
+The app follows the MVVM (Model-View-ViewModel) architecture pattern:
 
-- **Models**: Data structures for drawing tools and lines
-- **Views**: SwiftUI views for the canvas and UI
-- **ViewModels**: Business logic and state management
+- **Models**
+  - `DrawingTool`: Represents available drawing tools
+  - `DrawingPoint`: Represents a point in the drawing
+  - `DrawingLine`: Represents a line in the drawing
+  - `LassoSelection`: Handles selection functionality
+  - `HandwritingError`: Custom error types
 
-## Technical Details
+- **Views**
+  - `ContentView`: Main container view
+  - `DrawingCanvasView`: Handles drawing and selection rendering
 
-- Built with SwiftUI for the user interface
-- Uses Core ML and Vision frameworks for text recognition
-- Implements custom drawing using SwiftUI Canvas
-- Handles pressure sensitivity for better drawing experience
-- Uses Vision's VNRecognizeTextRequest for accurate handwriting recognition
+- **ViewModels**
+  - `DrawingViewModel`: Manages drawing state and business logic
 
-## Source Repositories
+- **Services**
+  - `TextRecognitionService`: Handles ML processing and text recognition
 
-- TrOCR-Swift-Demo (this repository)
-- [TrOCR Model](https://github.com/ajmcclary/trocr-small-handwritten-coreml): Contains the Python scripts for generating the CoreML model
+## Testing
+
+The app includes comprehensive unit tests and integration tests:
+
+```bash
+swift test
+```
+
+Tests cover:
+- Drawing functionality
+- Tool selection
+- Error handling
+- Text recognition
+- Performance benchmarks
+
+## Error Handling
+
+The app provides clear error messages and recovery suggestions for common issues:
+- ML model loading failures
+- Image processing errors
+- Text recognition failures
+- Invalid selections
+
+## Accessibility
+
+The app supports:
+- VoiceOver navigation
+- Keyboard shortcuts
+- High contrast visuals
+- Clear accessibility labels and hints
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- TrOCR model conversion scripts by [ajmcclary](https://github.com/ajmcclary)
-- Original TrOCR model by Microsoft Research
