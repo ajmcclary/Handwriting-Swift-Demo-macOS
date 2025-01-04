@@ -1,0 +1,34 @@
+name: HandwritingApp
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    macOS: 13.0
+  xcodeVersion: "15.0"
+targets:
+  HandwritingApp:
+    type: application
+    platform: macOS
+    sources:
+      - HandwritingApp
+    settings:
+      base:
+        INFOPLIST_FILE: HandwritingApp/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.handwritingapp
+        MACOSX_DEPLOYMENT_TARGET: 13.0
+    info:
+      path: HandwritingApp/Info.plist
+      properties:
+        CFBundleName: HandwritingApp
+        CFBundleDisplayName: HandwritingApp
+        CFBundlePackageType: APPL
+        CFBundleShortVersionString: 1.0.0
+        CFBundleVersion: 1
+        LSMinimumSystemVersion: 13.0
+        NSHighResolutionCapable: true
+  HandwritingAppTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - HandwritingAppTests
+    dependencies:
+      - target: HandwritingApp

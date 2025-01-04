@@ -1,15 +1,10 @@
 #!/bin/bash
 
-# Create Xcode project
-xcodegen generate || {
+# Check for XcodeGen
+if ! command -v xcodegen &> /dev/null; then
     echo "XcodeGen not installed. Installing..."
     brew install xcodegen
-    xcodegen generate
-}
-
-# Copy ML model
-mkdir -p HandwritingApp/Resources
-cp -r TrOCR-Handwritten.mlpackage HandwritingApp/Resources/
+fi
 
 # Create project.yml for XcodeGen
 cat > project.yml << 'EOL'
@@ -17,17 +12,19 @@ name: HandwritingApp
 options:
   bundleIdPrefix: com.example
   deploymentTarget:
-    iOS: 16.0
+    macOS: 13.0
+  xcodeVersion: "15.0"
 targets:
   HandwritingApp:
     type: application
-    platform: iOS
+    platform: macOS
     sources:
       - HandwritingApp
     settings:
       base:
         INFOPLIST_FILE: HandwritingApp/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.example.handwritingapp
+        MACOSX_DEPLOYMENT_TARGET: 13.0
     info:
       path: HandwritingApp/Info.plist
       properties:
@@ -36,13 +33,15 @@ targets:
         CFBundlePackageType: APPL
         CFBundleShortVersionString: 1.0.0
         CFBundleVersion: 1
-        UILaunchStoryboardName: ""
-        UIApplicationSceneManifest:
-          UIApplicationSupportsMultipleScenes: false
-          UISceneConfigurations:
-            UIWindowSceneSessionRoleApplication:
-              - UISceneConfigurationName: Default Configuration
-                UISceneDelegateClassName: $(PRODUCT_MODULE_NAME).SceneDelegate
+        LSMinimumSystemVersion: 13.0
+        NSHighResolutionCapable: true
+  HandwritingAppTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - HandwritingAppTests
+    dependencies:
+      - target: HandwritingApp
 EOL
 
 # Create Info.plist
@@ -68,37 +67,10 @@ cat > HandwritingApp/Info.plist << 'EOL'
     <string>1.0</string>
     <key>CFBundleVersion</key>
     <string>1</string>
-    <key>LSRequiresIPhoneOS</key>
+    <key>LSMinimumSystemVersion</key>
+    <string>13.0</string>
+    <key>NSHighResolutionCapable</key>
     <true/>
-    <key>UIApplicationSceneManifest</key>
-    <dict>
-        <key>UIApplicationSupportsMultipleScenes</key>
-        <false/>
-        <key>UISceneConfigurations</key>
-        <dict>
-            <key>UIWindowSceneSessionRoleApplication</key>
-            <array>
-                <dict>
-                    <key>UISceneConfigurationName</key>
-                    <string>Default Configuration</string>
-                    <key>UISceneDelegateClassName</key>
-                    <string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
-                </dict>
-            </array>
-        </dict>
-    </dict>
-    <key>UILaunchStoryboardName</key>
-    <string>LaunchScreen</string>
-    <key>UIRequiredDeviceCapabilities</key>
-    <array>
-        <string>armv7</string>
-    </array>
-    <key>UISupportedInterfaceOrientations</key>
-    <array>
-        <string>UIInterfaceOrientationPortrait</string>
-        <string>UIInterfaceOrientationLandscapeLeft</string>
-        <string>UIInterfaceOrientationLandscapeRight</string>
-    </array>
 </dict>
 </plist>
 EOL
