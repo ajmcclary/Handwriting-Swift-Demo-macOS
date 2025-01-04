@@ -2,6 +2,8 @@
 
 A macOS application that converts handwritten text to digital text using SwiftUI and Vision framework.
 
+![HandwritingApp Demo](docs/demo.png)
+
 ## Features
 
 - Drawing canvas with pressure sensitivity
@@ -65,7 +67,7 @@ swift run
 
 2. **Text Recognition**:
    - Select the lasso tool
-   - Draw around the text you want to recognize
+   - Draw around the text you want to recognize (as shown in the demo image)
    - Click the text recognition button (viewfinder icon)
    - View the recognized text in both the UI and terminal
 
