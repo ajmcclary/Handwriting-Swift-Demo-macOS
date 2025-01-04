@@ -1,130 +1,131 @@
-# HandwritingApp (Using the Vision Framework for macOS)
+# HandwritingApp
+## Using the Apple's Vision Framework for macOS
 
-A native macOS SwiftUI application that provides real-time handwriting recognition using Apple's Vision framework.
-
-This app enables instant conversion of handwritten text to digital format through an intuitive drawing interface, leveraging the power of Vision's built-in text recognition capabilities.
+A native macOS SwiftUI application that provides real-time handwriting recognition using Apple's Vision framework. Transform your handwritten text into digital format instantly through an intuitive drawing interface.
 
 ![HandwritingApp Screenshot](docs/example.png)
 
-## Features
+## Key Features
 
-- **Drawing Tools**
-  - Pressure-sensitive pencil tool for natural handwriting
-  - Eraser tool for making corrections
-  - Lasso tool for selecting text areas
+### Drawing Tools
+* Pressure-sensitive pencil tool that delivers a natural handwriting experience
+* Precise eraser tool for quick corrections and touch-ups
+* Lasso tool for accurate text area selection and manipulation
 
-- **Text Recognition**
-  - Native Vision framework powered handwriting recognition
-  - Support for English text
-  - Real-time processing
-  - Clear error handling with recovery suggestions
+### Text Recognition
+* Powered by Apple's Vision framework for accurate handwriting recognition
+* Real-time processing with immediate feedback
+* Comprehensive English text support
+* Robust error handling with actionable recovery suggestions
 
-- **User Interface**
-  - Clean, intuitive toolbar
-  - Live drawing preview
-  - Visual feedback for selection
-  - Accessibility support
-  - Error messaging system
+### User Interface
+* Minimalist, intuitive toolbar design
+* Responsive drawing preview
+* Clear visual feedback for selections
+* Full accessibility support
+* Informative error messaging system
 
-## Requirements
+## System Requirements
 
-- macOS 13.0 or later
-- Xcode 15.0 or later
-- Swift 5.9 or later
+* macOS 13.0 or later
+* Xcode 15.0 or later
+* Swift 5.9 or later
 
-## Installation
+## Getting Started
+
+### Installation
 
 1. Clone the repository:
-```bash
-git clone https://github.com/ajmcclary/Handwriting-Swift-Demo-macOS.git
-cd Handwriting-Swift-Demo-macOS
-```
+   ```bash
+   git clone https://github.com/ajmcclary/Handwriting-Swift-Demo-macOS.git
+   cd Handwriting-Swift-Demo-macOS
+   ```
 
-2. Build and run the project:
-```bash
-swift run
-```
+2. Build and run:
+   ```bash
+   swift run
+   ```
 
-## Usage
+### Basic Usage
 
-1. **Drawing**
-   - Select the pencil tool from the toolbar
-   - Draw on the canvas using your mouse or trackpad
-   - Pressure sensitivity is supported with compatible hardware
+#### Drawing
+* Select the pencil tool from the toolbar
+* Draw naturally using your mouse or trackpad
+* Experience pressure sensitivity with compatible hardware
 
-2. **Erasing**
-   - Select the eraser tool
-   - Click and drag over areas you want to erase
+#### Erasing
+* Switch to the eraser tool
+* Click and drag to remove unwanted content
 
-3. **Text Recognition**
-   - Select the lasso tool
-   - Draw around the text you want to recognize
-   - Click the "Recognize Text" button (viewfinder icon)
-   - View the recognized text in the results panel
+#### Text Recognition
+1. Select the lasso tool
+2. Draw around text you want to digitize
+3. Click the "Recognize Text" button (viewfinder icon)
+4. View results in the dedicated panel
 
-4. **Managing Content**
-   - Use the clear selection button (X icon) to remove the current selection
-   - Use the clear canvas button (trash icon) to start over
+#### Content Management
+* Clear selection: Click the X icon
+* Reset canvas: Click the trash icon
 
-## Architecture
+## Technical Details
 
-The app follows the MVVM (Model-View-ViewModel) architecture pattern:
+### Architecture
 
-- **Models**
-  - `DrawingTool`: Represents available drawing tools
-  - `DrawingPoint`: Represents a point in the drawing
-  - `DrawingLine`: Represents a line in the drawing
-  - `LassoSelection`: Handles selection functionality
-  - `HandwritingError`: Custom error types
+The application implements the MVVM (Model-View-ViewModel) pattern:
 
-- **Views**
-  - `ContentView`: Main container view
-  - `DrawingCanvasView`: Handles drawing and selection rendering
+#### Models
+* `DrawingTool`: Drawing tool enumeration
+* `DrawingPoint`: Point representation
+* `DrawingLine`: Line representation
+* `LassoSelection`: Selection management
+* `HandwritingError`: Error handling
 
-- **ViewModels**
-  - `DrawingViewModel`: Manages drawing state and business logic
+#### Views
+* `ContentView`: Primary container
+* `DrawingCanvasView`: Drawing and selection renderer
 
-- **Services**
-  - `TextRecognitionService`: Handles Vision framework text recognition
+#### ViewModels
+* `DrawingViewModel`: State and logic manager
 
-## Testing
+#### Services
+* `TextRecognitionService`: Vision framework integration
 
-The app includes comprehensive unit tests and integration tests:
+### Testing
 
+Run the test suite:
 ```bash
 swift test
 ```
 
-Tests cover:
-- Drawing functionality
-- Tool selection
-- Error handling
-- Text recognition
-- Performance benchmarks
+Coverage includes:
+* Drawing functionality
+* Tool selection logic
+* Error handling scenarios
+* Text recognition accuracy
+* Performance benchmarks
 
-## Error Handling
+### Error Handling
 
-The app provides clear error messages and recovery suggestions for common issues:
-- Image processing errors
-- Text recognition failures
-- Invalid selections
+The application provides comprehensive error management:
+* Detailed error messages
+* Recovery suggestions
+* Common issue resolution paths
 
-## Accessibility
+### Accessibility Features
 
-The app supports:
-- VoiceOver navigation
-- Keyboard shortcuts
-- High contrast visuals
-- Clear accessibility labels and hints
+* Complete VoiceOver navigation support
+* Intuitive keyboard shortcuts
+* High contrast visual options
+* Descriptive accessibility labels and hints
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+2. Create your feature branch: `git checkout -b feature/YourFeature`
+3. Commit changes: `git commit -m 'Add YourFeature'`
+4. Push to branch: `git push origin feature/YourFeature`
+5. Submit a Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Released under the MIT License. See the [LICENSE](LICENSE) file for details.
