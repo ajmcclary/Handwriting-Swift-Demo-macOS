@@ -1,6 +1,8 @@
-# Handwriting-Swift-Demo-macOS
+# HandwritingApp for macOS using the Vision Framework
 
-A native macOS SwiftUI application that provides real-time handwriting recognition using Apple's Vision framework. This app enables instant conversion of handwritten text to digital format through an intuitive drawing interface, leveraging the power of Vision's built-in text recognition capabilities.
+A native macOS SwiftUI application that provides real-time handwriting recognition using Apple's Vision framework.
+
+This app enables instant conversion of handwritten text to digital format through an intuitive drawing interface, leveraging the power of Vision's built-in text recognition capabilities.
 
 ![HandwritingApp Screenshot](docs/example.png)
 
