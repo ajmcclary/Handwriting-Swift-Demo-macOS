@@ -1,35 +1,11 @@
 import Vision
-import CoreML
 import AppKit
 import SwiftUI
 
 /// Service responsible for handling text recognition operations
 actor TextRecognitionService {
-    /// The ML model used for text recognition
-    private let mlModel: MLModel?
-    
     /// Creates a new instance of the text recognition service
-    init() throws {
-        // Try to find the compiled model
-        let possiblePaths = [
-            Bundle.main.resourcePath,
-            Bundle.main.bundlePath,
-            FileManager.default.currentDirectoryPath + "/.build/arm64-apple-macosx/debug",
-            FileManager.default.currentDirectoryPath + "/HandwritingApp/Resources"
-        ]
-        
-        for path in possiblePaths {
-            if let path = path {
-                let modelPath = path + "/TrOCR-Handwritten.mlmodelc"
-                if FileManager.default.fileExists(atPath: modelPath) {
-                    mlModel = try MLModel(contentsOf: URL(fileURLWithPath: modelPath))
-                    return
-                }
-            }
-        }
-        
-        throw HandwritingError.modelNotFound
-    }
+    init() {}
     
     /// Processes an image for text recognition
     /// - Parameters:

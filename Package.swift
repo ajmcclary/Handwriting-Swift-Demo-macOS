@@ -2,21 +2,18 @@
 import PackageDescription
 
 let package = Package(
-    name: "TrOCR-Swift-Demo",
+    name: "HandwritingApp",
     platforms: [
         .macOS(.v13)
     ],
     products: [
-        .executable(name: "TrOCR-Swift-Demo", targets: ["HandwritingApp"])
+        .executable(name: "HandwritingApp", targets: ["HandwritingApp"])
     ],
     dependencies: [],
     targets: [
         .executableTarget(
             name: "HandwritingApp",
-            path: "HandwritingApp",
-            resources: [
-                .copy("Resources/TrOCR-Handwritten.mlmodelc")
-            ]
+            path: "HandwritingApp"
         )
     ]
 )

@@ -1,6 +1,6 @@
-# TrOCR-Swift-Demo
+# HandwritingApp
 
-A proof of concept demonstrating real-time handwriting recognition using Microsoft's TrOCR model in a native macOS SwiftUI application. This demo showcases the integration of CoreML-converted TrOCR with Apple's Vision framework, enabling instant conversion of handwritten text to digital format through an intuitive drawing interface.
+A native macOS SwiftUI application that provides real-time handwriting recognition using Apple's Vision framework. This app enables instant conversion of handwritten text to digital format through an intuitive drawing interface, leveraging the power of Vision's built-in text recognition capabilities.
 
 ![HandwritingApp Screenshot](docs/example.png)
 
@@ -12,7 +12,7 @@ A proof of concept demonstrating real-time handwriting recognition using Microso
   - Lasso tool for selecting text areas
 
 - **Text Recognition**
-  - ML-powered handwriting recognition
+  - Native Vision framework powered handwriting recognition
   - Support for English text
   - Real-time processing
   - Clear error handling with recovery suggestions
@@ -34,13 +34,13 @@ A proof of concept demonstrating real-time handwriting recognition using Microso
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/TrOCR-Swift-Demo.git
-cd TrOCR-Swift-Demo
+git clone https://github.com/yourusername/HandwritingApp.git
+cd HandwritingApp
 ```
 
 2. Build and run the project:
 ```bash
-swift run TrOCR-Swift-Demo
+swift run
 ```
 
 ## Usage
@@ -83,7 +83,7 @@ The app follows the MVVM (Model-View-ViewModel) architecture pattern:
   - `DrawingViewModel`: Manages drawing state and business logic
 
 - **Services**
-  - `TextRecognitionService`: Handles ML processing and text recognition
+  - `TextRecognitionService`: Handles Vision framework text recognition
 
 ## Testing
 
@@ -103,7 +103,6 @@ Tests cover:
 ## Error Handling
 
 The app provides clear error messages and recovery suggestions for common issues:
-- ML model loading failures
 - Image processing errors
 - Text recognition failures
 - Invalid selections
