@@ -1,4 +1,4 @@
-# HandwritingApp for macOS using the Vision Framework
+# HandwritingApp (Using the Vision Framework for macOS)
 
 A native macOS SwiftUI application that provides real-time handwriting recognition using Apple's Vision framework.
 
