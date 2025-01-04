@@ -1,6 +1,6 @@
-# HandwritingApp
+# TrOCR-Swift-Demo
 
-A macOS application that converts handwritten text to digital text using SwiftUI and Vision framework.
+A proof of concept demonstrating real-time handwriting recognition using Microsoft's TrOCR model in a native macOS SwiftUI application. This demo showcases the integration of CoreML-converted TrOCR with Apple's Vision framework, enabling instant conversion of handwritten text to digital format through an intuitive drawing interface.
 
 ![Example of handwriting recognition](docs/example.png)
 
@@ -25,8 +25,8 @@ A macOS application that converts handwritten text to digital text using SwiftUI
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/yourusername/HandwritingApp.git
-cd HandwritingApp
+git clone https://github.com/yourusername/TrOCR-Swift-Demo.git
+cd TrOCR-Swift-Demo
 ```
 
 2. Generate the TrOCR ML model:
@@ -47,9 +47,9 @@ Run the conversion script to generate the CoreML model:
 python convert_to_coreml.py
 ```
 
-This will generate `TrOCR-Handwritten.mlpackage`. Copy this file to the HandwritingApp's Resources directory:
+This will generate `TrOCR-Handwritten.mlpackage`. Copy this file to the app's Resources directory:
 ```bash
-cp TrOCR-Handwritten.mlpackage /path/to/HandwritingApp/HandwritingApp/Resources/
+cp TrOCR-Handwritten.mlpackage /path/to/TrOCR-Swift-Demo/HandwritingApp/Resources/
 ```
 
 3. Build and run the app:
@@ -94,7 +94,7 @@ The app follows the MVVM (Model-View-ViewModel) architecture:
 
 ## Source Repositories
 
-- HandwritingApp (this repository)
+- TrOCR-Swift-Demo (this repository)
 - [TrOCR Model](https://github.com/ajmcclary/trocr-small-handwritten-coreml): Contains the Python scripts for generating the CoreML model
 
 ## License
