@@ -146,6 +146,6 @@ struct DrawingCanvasView: View {
 }
 
 #Preview {
-    DrawingCanvasView(viewModel: DrawingViewModel())
+    DrawingCanvasView(viewModel: DrawingViewModel.preview())
         .frame(width: 400, height: 400)
 }

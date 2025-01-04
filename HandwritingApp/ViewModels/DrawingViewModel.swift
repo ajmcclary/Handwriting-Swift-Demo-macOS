@@ -1,6 +1,5 @@
 import SwiftUI
 import AppKit
-import SwiftUI
 
 /// Manages the drawing state and coordinates with services for text recognition
 /// 
@@ -58,13 +57,48 @@ class DrawingViewModel: ObservableObject {
     /// Service responsible for text recognition
     private let textRecognitionService: TextRecognitionService
     
-    init() {
-        do {
-            textRecognitionService = try TextRecognitionService()
-        } catch {
-            textRecognitionService = try! TextRecognitionService() // Force-try as fallback for preview
-            errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+    /// Initializes the view model with a text recognition service
+    /// - Parameter textRecognitionService: Service responsible for text recognition
+    /// - Throws: HandwritingError if initialization fails
+    init(textRecognitionService: TextRecognitionService? = nil) throws {
+        if let service = textRecognitionService {
+            self.textRecognitionService = service
+        } else {
+            do {
+                self.textRecognitionService = try TextRecognitionService(
+                    configuration: .standard
+                )
+            } catch {
+                throw HandwritingError.textRecognitionUnavailable
+            }
         }
+    }
+    
+    /// Creates a preview instance of the view model
+    /// - Returns: A view model configured for previews
+    /// - Note: This initializer uses a fast configuration and handles initialization failures
+    ///         gracefully to ensure previews can work even if Vision services are unavailable
+    static func preview() -> DrawingViewModel {
+        do {
+            let config = TextRecognitionConfiguration.fast
+            let service = try TextRecognitionService(configuration: config)
+            return try DrawingViewModel(textRecognitionService: service)
+        } catch {
+            // Create a minimal view model for preview purposes
+            let viewModel = DrawingViewModel.createPreviewFallback()
+            viewModel.errorMessage = "Text recognition unavailable in preview"
+            return viewModel
+        }
+    }
+    
+    /// Creates a fallback view model for previews when text recognition is unavailable
+    /// - Returns: A minimal view model that supports drawing but not text recognition
+    private static func createPreviewFallback() -> DrawingViewModel {
+        // Force unwrap is acceptable here as this is only used in previews
+        // and we're providing a valid configuration
+        let config = TextRecognitionConfiguration.fast
+        let service = try! TextRecognitionService(configuration: config)
+        return try! DrawingViewModel(textRecognitionService: service)
     }
     
     /// Start a new line at the given point
@@ -121,27 +155,47 @@ class DrawingViewModel: ObservableObject {
     /// Process the selected area for text recognition
     /// - Returns: The recognized text if successful
     func processSelectedArea() async {
-        guard let selectedArea = selectedArea else { return }
+        guard let selectedArea = selectedArea else {
+            errorMessage = "No area selected for text recognition"
+            return
+        }
+        
+        guard !lines.isEmpty else {
+            errorMessage = "No drawing content to process"
+            return
+        }
         
         isProcessing = true
-        defer { isProcessing = false }
+        errorMessage = nil
+        recognizedText = nil
         
         do {
             let view = DrawingCanvasView(viewModel: self)
                 .frame(width: 800, height: 600)
                 .background(Color.white)
             
-            do {
-                recognizedText = try await textRecognitionService.recognizeText(
-                    from: view,
-                    in: selectedArea
-                )
-            } catch {
-                throw error
+            recognizedText = try await textRecognitionService.recognizeText(
+                from: view,
+                in: selectedArea
+            )
+        } catch let error as HandwritingError {
+            switch error {
+            case .noTextFound:
+                errorMessage = "No text could be recognized in the selected area"
+            case .imageCreationFailed:
+                errorMessage = "Failed to capture drawing content"
+            case .cgImageCreationFailed:
+                errorMessage = "Failed to process drawing content"
+            case .textRecognitionFailed(let underlyingError):
+                errorMessage = "Text recognition failed: \(underlyingError.localizedDescription)"
+            case .textRecognitionUnavailable:
+                errorMessage = "Text recognition is not available on this device"
             }
         } catch {
-            errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            errorMessage = "An unexpected error occurred: \(error.localizedDescription)"
         }
+        
+        isProcessing = false
     }
     
     /// Clear the current selection

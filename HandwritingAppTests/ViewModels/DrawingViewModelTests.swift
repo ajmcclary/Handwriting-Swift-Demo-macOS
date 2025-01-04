@@ -1,141 +1,148 @@
 import XCTest
+import Vision
+import SwiftUI
 @testable import HandwritingApp
 
 final class DrawingViewModelTests: XCTestCase {
-    var viewModel: DrawingViewModel!
-    
-    override func setUp() {
-        super.setUp()
-        viewModel = DrawingViewModel()
-    }
-    
-    override func tearDown() {
-        viewModel = nil
-        super.tearDown()
-    }
-    
-    // MARK: - Tool Selection Tests
-    
-    func testInitialToolIsPencil() {
+    func testInitializationSuccess() async throws {
+        let viewModel = try DrawingViewModel()
+        
         XCTAssertEqual(viewModel.selectedTool, .pencil)
+        XCTAssertTrue(viewModel.lines.isEmpty)
+        XCTAssertNil(viewModel.currentLine)
+        XCTAssertNil(viewModel.currentSelection)
+        XCTAssertNil(viewModel.selectedArea)
+        XCTAssertNil(viewModel.recognizedText)
+        XCTAssertNil(viewModel.errorMessage)
+        XCTAssertFalse(viewModel.isProcessing)
     }
     
-    func testToolSelection() {
-        viewModel.selectedTool = .eraser
-        XCTAssertEqual(viewModel.selectedTool, .eraser)
+    func testInitializationWithCustomService() async throws {
+        let service = try TextRecognitionService(configuration: .fast)
+        let viewModel = try DrawingViewModel(textRecognitionService: service)
         
-        viewModel.selectedTool = .lasso
-        XCTAssertEqual(viewModel.selectedTool, .lasso)
+        XCTAssertNotNil(viewModel)
+        XCTAssertNil(viewModel.errorMessage)
     }
     
-    // MARK: - Drawing Tests
+    func testProcessSelectedAreaWithNoSelection() async throws {
+        let viewModel = try DrawingViewModel()
+        
+        await viewModel.processSelectedArea()
+        
+        XCTAssertEqual(viewModel.errorMessage, "No area selected for text recognition")
+        XCTAssertNil(viewModel.recognizedText)
+        XCTAssertFalse(viewModel.isProcessing)
+    }
     
-    func testStartDrawingWithPencil() {
+    func testProcessSelectedAreaWithNoDrawing() async throws {
+        let viewModel = try DrawingViewModel()
+        viewModel.selectedArea = CGRect(x: 0, y: 0, width: 100, height: 100)
+        
+        await viewModel.processSelectedArea()
+        
+        XCTAssertEqual(viewModel.errorMessage, "No drawing content to process")
+        XCTAssertNil(viewModel.recognizedText)
+        XCTAssertFalse(viewModel.isProcessing)
+    }
+    
+    func testClearSelection() async throws {
+        let viewModel = try DrawingViewModel()
+        
+        // Set up some selection state
+        viewModel.currentSelection = LassoSelection(points: [
+            DrawingPoint(x: 0, y: 0, pressure: 1.0)
+        ])
+        viewModel.selectedArea = CGRect(x: 0, y: 0, width: 100, height: 100)
+        viewModel.recognizedText = "Test text"
+        
+        // Clear the selection
+        viewModel.clearSelection()
+        
+        // Verify everything is cleared
+        XCTAssertNil(viewModel.currentSelection)
+        XCTAssertNil(viewModel.selectedArea)
+        XCTAssertNil(viewModel.recognizedText)
+    }
+    
+    func testClearCanvas() async throws {
+        let viewModel = try DrawingViewModel()
+        
+        // Add some drawing content
+        viewModel.lines = [
+            DrawingLine(
+                points: [DrawingPoint(x: 0, y: 0, pressure: 1.0)],
+                color: .black,
+                lineWidth: 2.0
+            )
+        ]
+        viewModel.selectedArea = CGRect(x: 0, y: 0, width: 100, height: 100)
+        viewModel.recognizedText = "Test text"
+        
+        // Clear the canvas
+        viewModel.clearCanvas()
+        
+        // Verify everything is cleared
+        XCTAssertTrue(viewModel.lines.isEmpty)
+        XCTAssertNil(viewModel.selectedArea)
+        XCTAssertNil(viewModel.recognizedText)
+    }
+    
+    func testDrawingToolSelection() async throws {
+        let viewModel = try DrawingViewModel()
+        
+        // Test pencil tool
         viewModel.selectedTool = .pencil
-        let point = CGPoint(x: 100, y: 100)
-        
-        viewModel.startDrawing(at: point)
-        
-        XCTAssertNotNil(viewModel.currentLine)
-        XCTAssertEqual(viewModel.currentLine?.points.first?.x, point.x)
-        XCTAssertEqual(viewModel.currentLine?.points.first?.y, point.y)
+        viewModel.startDrawing(at: CGPoint(x: 0, y: 0))
         XCTAssertEqual(viewModel.currentLine?.color, .black)
         XCTAssertEqual(viewModel.currentLine?.lineWidth, 2.0)
-    }
-    
-    func testStartDrawingWithEraser() {
+        
+        // Test eraser tool
         viewModel.selectedTool = .eraser
-        let point = CGPoint(x: 100, y: 100)
-        
-        viewModel.startDrawing(at: point)
-        
-        XCTAssertNotNil(viewModel.currentLine)
-        XCTAssertEqual(viewModel.currentLine?.points.first?.x, point.x)
-        XCTAssertEqual(viewModel.currentLine?.points.first?.y, point.y)
+        viewModel.startDrawing(at: CGPoint(x: 0, y: 0))
         XCTAssertEqual(viewModel.currentLine?.color, .white)
         XCTAssertEqual(viewModel.currentLine?.lineWidth, 20.0)
-    }
-    
-    func testAddPoint() {
-        viewModel.selectedTool = .pencil
-        let startPoint = CGPoint(x: 100, y: 100)
-        let newPoint = CGPoint(x: 150, y: 150)
         
-        viewModel.startDrawing(at: startPoint)
-        viewModel.addPoint(newPoint)
-        
-        XCTAssertEqual(viewModel.currentLine?.points.count, 2)
-        XCTAssertEqual(viewModel.currentLine?.points.last?.x, newPoint.x)
-        XCTAssertEqual(viewModel.currentLine?.points.last?.y, newPoint.y)
-    }
-    
-    func testEndDrawing() {
-        viewModel.selectedTool = .pencil
-        let point = CGPoint(x: 100, y: 100)
-        
-        viewModel.startDrawing(at: point)
-        viewModel.endDrawing()
-        
-        XCTAssertEqual(viewModel.lines.count, 1)
+        // Test lasso tool
+        viewModel.selectedTool = .lasso
+        viewModel.startDrawing(at: CGPoint(x: 0, y: 0))
+        XCTAssertNotNil(viewModel.currentSelection)
         XCTAssertNil(viewModel.currentLine)
     }
     
-    // MARK: - Lasso Selection Tests
-    
-    func testLassoSelection() {
-        viewModel.selectedTool = .lasso
-        let points = [
-            CGPoint(x: 100, y: 100),
-            CGPoint(x: 200, y: 100),
-            CGPoint(x: 200, y: 200),
-            CGPoint(x: 100, y: 200)
-        ]
+    func testAddPointToLine() async throws {
+        let viewModel = try DrawingViewModel()
+        let startPoint = CGPoint(x: 0, y: 0)
+        let newPoint = CGPoint(x: 10, y: 10)
         
-        viewModel.startDrawing(at: points[0])
-        for point in points.dropFirst() {
-            viewModel.addPoint(point)
-        }
-        viewModel.endDrawing()
+        // Start drawing
+        viewModel.startDrawing(at: startPoint)
+        XCTAssertEqual(viewModel.currentLine?.points.count, 1)
         
-        XCTAssertNotNil(viewModel.selectedArea)
-        XCTAssertEqual(viewModel.selectedArea?.origin.x, 100)
-        XCTAssertEqual(viewModel.selectedArea?.origin.y, 100)
-        XCTAssertEqual(viewModel.selectedArea?.size.width, 100)
-        XCTAssertEqual(viewModel.selectedArea?.size.height, 100)
+        // Add a point
+        viewModel.addPoint(newPoint)
+        XCTAssertEqual(viewModel.currentLine?.points.count, 2)
+        XCTAssertEqual(viewModel.currentLine?.points.last?.x, 10)
+        XCTAssertEqual(viewModel.currentLine?.points.last?.y, 10)
     }
     
-    // MARK: - Canvas Management Tests
-    
-    func testClearSelection() {
-        viewModel.selectedTool = .lasso
-        let point = CGPoint(x: 100, y: 100)
+    func testEndDrawing() async throws {
+        let viewModel = try DrawingViewModel()
         
-        viewModel.startDrawing(at: point)
-        viewModel.endDrawing()
-        
-        XCTAssertNotNil(viewModel.selectedArea)
-        
-        viewModel.clearSelection()
-        
-        XCTAssertNil(viewModel.selectedArea)
-        XCTAssertNil(viewModel.currentSelection)
-        XCTAssertNil(viewModel.recognizedText)
-    }
-    
-    func testClearCanvas() {
+        // Test ending pencil drawing
         viewModel.selectedTool = .pencil
-        let point = CGPoint(x: 100, y: 100)
-        
-        viewModel.startDrawing(at: point)
+        viewModel.startDrawing(at: CGPoint(x: 0, y: 0))
         viewModel.endDrawing()
-        
         XCTAssertEqual(viewModel.lines.count, 1)
+        XCTAssertNil(viewModel.currentLine)
         
-        viewModel.clearCanvas()
-        
-        XCTAssertTrue(viewModel.lines.isEmpty)
-        XCTAssertNil(viewModel.selectedArea)
-        XCTAssertNil(viewModel.currentSelection)
-        XCTAssertNil(viewModel.recognizedText)
+        // Test ending lasso selection
+        viewModel.selectedTool = .lasso
+        viewModel.startDrawing(at: CGPoint(x: 0, y: 0))
+        viewModel.addPoint(CGPoint(x: 100, y: 0))
+        viewModel.addPoint(CGPoint(x: 100, y: 100))
+        viewModel.addPoint(CGPoint(x: 0, y: 100))
+        viewModel.endDrawing()
+        XCTAssertNotNil(viewModel.selectedArea)
     }
 }

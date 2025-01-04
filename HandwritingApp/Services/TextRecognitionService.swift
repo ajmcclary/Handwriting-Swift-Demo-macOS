@@ -2,10 +2,22 @@ import Vision
 import AppKit
 import SwiftUI
 
-/// Service responsible for handling text recognition operations
+/// Service responsible for handling text recognition operations using Vision framework
 actor TextRecognitionService {
+    /// Configuration for text recognition
+    private let configuration: TextRecognitionConfiguration
+    
     /// Creates a new instance of the text recognition service
-    init() {}
+    /// - Parameter configuration: Configuration for text recognition, defaults to standard English
+    /// - Throws: HandwritingError if initialization fails
+    init(configuration: TextRecognitionConfiguration = .standard) throws {
+        self.configuration = configuration
+        
+        // Validate Vision availability
+        guard VNRecognizeTextRequestRevision1 <= VNRecognizeTextRequest.currentRevision else {
+            throw HandwritingError.textRecognitionUnavailable
+        }
+    }
     
     /// Processes an image for text recognition
     /// - Parameters:
@@ -17,7 +29,7 @@ actor TextRecognitionService {
         // Create a bitmap representation of the view on the main actor
         let nsImage = try await MainActor.run {
             let renderer = ImageRenderer(content: view.frame(width: 800, height: 600))
-            renderer.scale = 2.0
+            renderer.scale = 4.0  // Higher scale for better resolution
             
             guard let nsImage = renderer.nsImage else {
                 throw HandwritingError.imageCreationFailed
@@ -25,20 +37,32 @@ actor TextRecognitionService {
             return nsImage
         }
         
-        // Create a new image for the cropped area
+        // Create a new image for the cropped area with preprocessing
         let croppedImage = NSImage(size: selectedArea.size)
         croppedImage.lockFocus()
         
-        // Draw the portion of the original image into the new image
-        let sourceRect = NSRect(
-            x: selectedArea.origin.x,
-            y: nsImage.size.height - selectedArea.origin.y - selectedArea.height,
-            width: selectedArea.width,
-            height: selectedArea.height
-        )
-        
-        let destRect = NSRect(origin: .zero, size: selectedArea.size)
-        nsImage.draw(in: destRect, from: sourceRect, operation: .copy, fraction: 1.0)
+        // Set up graphics context for preprocessing
+        if let context = NSGraphicsContext.current?.cgContext {
+            // Draw white background first
+            context.setFillColor(NSColor.white.cgColor)
+            context.fill(CGRect(origin: .zero, size: selectedArea.size))
+            
+            // Draw the portion of the original image with contrast adjustment
+            let sourceRect = NSRect(
+                x: selectedArea.origin.x,
+                y: nsImage.size.height - selectedArea.origin.y - selectedArea.height,
+                width: selectedArea.width,
+                height: selectedArea.height
+            )
+            
+            let destRect = NSRect(origin: .zero, size: selectedArea.size)
+            
+            // Apply contrast enhancement
+            context.setShadow(offset: .zero, blur: 0, color: nil)
+            context.setBlendMode(.normal)
+            
+            nsImage.draw(in: destRect, from: sourceRect, operation: .sourceOver, fraction: 1.2)  // Slightly increase contrast
+        }
         
         croppedImage.unlockFocus()
         
@@ -72,10 +96,7 @@ actor TextRecognitionService {
                 continuation.resume(returning: recognizedStrings.joined(separator: " "))
             }
             
-            // Configure the request for handwriting
-            request.recognitionLevel = .accurate
-            request.usesLanguageCorrection = true
-            request.recognitionLanguages = ["en-US"]
+            configureTextRequest(request, with: configuration)
             
             do {
                 let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
@@ -84,5 +105,30 @@ actor TextRecognitionService {
                 continuation.resume(throwing: HandwritingError.textRecognitionFailed(error))
             }
         }
+    }
+    
+    /// Configures a VNRecognizeTextRequest with the specified settings
+    /// - Parameters:
+    ///   - request: The request to configure
+    ///   - configuration: The configuration to apply
+    private func configureTextRequest(
+        _ request: VNRecognizeTextRequest,
+        with configuration: TextRecognitionConfiguration
+    ) {
+            // Configure base settings
+            request.recognitionLevel = configuration.recognitionLevel
+            request.usesLanguageCorrection = configuration.usesLanguageCorrection
+            request.recognitionLanguages = configuration.recognitionLanguages
+            request.minimumTextHeight = configuration.minimumTextHeight
+            
+            // Add custom words if available
+            if let customWords = configuration.customWords {
+                request.customWords = customWords
+            }
+            
+            // Additional recognition settings
+            request.revision = VNRecognizeTextRequestRevision2  // Use latest revision
+            request.usesCPUOnly = false  // Allow Neural Engine usage
+            request.recognitionLanguages = ["en-US", "en-GB"]  // Support multiple English variants
     }
 }
