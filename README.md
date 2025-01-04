@@ -34,8 +34,8 @@ A native macOS SwiftUI application that provides real-time handwriting recogniti
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/HandwritingApp.git
-cd HandwritingApp
+git clone https://github.com/ajmcclary/Handwriting-Swift-Demo-macOS.git
+cd Handwriting-Swift-Demo-macOS
 ```
 
 2. Build and run the project:
